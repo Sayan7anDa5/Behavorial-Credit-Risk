@@ -11,7 +11,7 @@ if "prob" not in st.session_state:
 st.title("Behavioral Credit Risk & Lifestyle Default Assessor")
 st.caption("Real-time loan risk scoring with explainable AI")
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = "https://credit-risk-api-ifvr.onrender.com"
 
 st.header("Applicant Profile")
 
