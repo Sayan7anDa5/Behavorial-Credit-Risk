@@ -1,4 +1,6 @@
 .venv/
 data/
-*.pkl
 __pycache__/
+*.pkl
+!models/xgb_model.pkl
+!models/imputer.pkl
