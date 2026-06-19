@@ -2,9 +2,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 import pickle
 import pandas as pd
-import sys
-import os
-
+import numpy as np
+import shap
 
 from api.features import engineer_features
 
@@ -16,6 +15,8 @@ with open('models/xgb_model.pkl', 'rb') as f:
 
 with open('models/imputer.pkl', 'rb') as f:
     imputer = pickle.load(f)
+
+explainer = shap.TreeExplainer(model)
 
 FEATURES = [
     'EXT_SOURCE_1', 'EXT_SOURCE_2', 'EXT_SOURCE_3',
@@ -55,8 +56,19 @@ def predict_default(applicant: Applicant):
     probability = model.predict_proba(X_imputed)[0][1]
     decision = "REJECT" if probability >= BEST_THRESHOLD else "APPROVE"
 
+    # SHAP values for this one applicant — how much each feature pushed risk up/down
+    shap_values = explainer.shap_values(X_imputed)[0]
+    feature_impact = list(zip(FEATURES, shap_values))
+    feature_impact.sort(key=lambda x: abs(x[1]), reverse=True)
+
+    top_factors = [
+        {"feature": name, "impact": round(float(val), 4)}
+        for name, val in feature_impact[:3]
+    ]
+
     return {
         "default_probability": round(float(probability), 4),
         "decision": decision,
-        "threshold_used": BEST_THRESHOLD
+        "threshold_used": BEST_THRESHOLD,
+        "top_risk_factors": top_factors
     }
